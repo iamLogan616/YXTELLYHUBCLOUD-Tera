@@ -252,7 +252,7 @@ async def start_handler(client: Client, message: Message):
             reply_markup=InlineKeyboardMarkup(buttons[:2])
         )
 
-@app.on_message(filters.text)
+@bot.on_message(filters.text)
 async def handle_message(client: Client, message: Message):
     user_id = message.from_user.id
     
