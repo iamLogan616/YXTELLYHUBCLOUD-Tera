@@ -20,6 +20,11 @@ from threading import Thread, Event
 import signal
 import sys
 
+
+port = int(os.environ.get("PORT", 5000))
+Thread(target=lambda: flask_app.run(host='0.0.0.0', port=port)).start()
+
+
 # Constants
 VALID_DOMAINS = [
     'terabox.com', 'nephobox.com', '4funbox.com', 'mirrobox.com', 
@@ -430,10 +435,13 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 if __name__ == "__main__":
-    # Start Flask
-    Thread(target=lambda: flask_app.run(host='0.0.0.0', port=5000)).start()
-    
-    # Start Clients
+    # Use Heroku-provided PORT, fallback to 5000 locally
+    port = int(os.environ.get("PORT", 5000))
+
+    # Start Flask server on the correct port
+    Thread(target=lambda: flask_app.run(host='0.0.0.0', port=port)).start()
+
+    # Start Telegram Clients
     if user_client:
         user_client.start()
     bot.run()
