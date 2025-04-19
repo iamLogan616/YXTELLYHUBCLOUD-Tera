@@ -348,10 +348,11 @@ async def upload_file(file_path: str, message: Message, status_message: Message)
             height=height,
             thumb=thumbnail,
             supports_streaming=True,
-            progress=lambda c, t: asyncio.create_task(
-                upload_progress(c, t, status_message)
+            progress=lambda current, total: asyncio.create_task(
+                upload_progress(current, total, status_message)
             )
-        )  # Fixed closing parenthesis here
+        )
+  # Fixed closing parenthesis here
         
         await bot.copy_message(message.chat.id, config.DUMP_CHAT_ID, msg.id)
     except Exception as e:
