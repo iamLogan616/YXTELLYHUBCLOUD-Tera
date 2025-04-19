@@ -21,10 +21,6 @@ import signal
 import sys
 
 
-port = int(os.environ.get("PORT", 5000))
-Thread(target=lambda: flask_app.run(host='0.0.0.0', port=port)).start()
-
-
 # Constants
 VALID_DOMAINS = [
     'terabox.com', 'nephobox.com', '4funbox.com', 'mirrobox.com', 
@@ -268,9 +264,6 @@ async def handle_message(client: Client, message: Message):
                 [InlineKeyboardButton("Join Channel", url="https://t.me/tellycloudbots")]
             ]))
     
-    if not has_valid_token(user_id):
-        return await message.reply_text("🔑 Your session has expired. Generate a new token using /start")
-    
     url = next((word for word in message.text.split() if is_valid_url(word)), None)
     if not url:
         return await message.reply_text("❌ Invalid Terabox link. Please provide a valid URL.")
@@ -286,7 +279,7 @@ async def process_download(client: Client, message: Message, url: str, user_id: 
     final_url = f"https://teraboxbotredirect.tellycloudapi.workers.dev/?url={encoded_url}"
     
     download = config.aria2.add_uris([final_url])
-    status_message = await message.reply_text("🚀 Starting download...")
+    status_message = await message.reply_text("🚀Wait Starting download...")
     
     try:
         await track_download_progress(download, status_message, user_id)
