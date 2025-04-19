@@ -21,6 +21,38 @@ import signal
 import sys
 
 
+load_dotenv('config.env', override=True)
+logging.basicConfig(
+    level=logging.INFO,  
+    format="[%(asctime)s - %(name)s - %(levelname)s] %(message)s - %(filename)s:%(lineno)d"
+)
+
+logger = logging.getLogger(__name__)
+
+logging.getLogger("pyrogram.session").setLevel(logging.ERROR)
+logging.getLogger("pyrogram.connection").setLevel(logging.ERROR)
+logging.getLogger("pyrogram.dispatcher").setLevel(logging.ERROR)
+
+aria2 = Aria2API(
+    Aria2Client(
+        host="http://localhost",
+        port=6800,
+        secret=""
+    )
+)
+options = {
+    "max-tries": "50",
+    "retry-wait": "3",
+    "continue": "true",
+    "allow-overwrite": "true",
+    "min-split-size": "4M",
+    "split": "10"
+}
+
+aria2.set_global_options(options)
+
+
+
 # Constants
 VALID_DOMAINS = [
     'terabox.com', 'nephobox.com', '4funbox.com', 'mirrobox.com', 
