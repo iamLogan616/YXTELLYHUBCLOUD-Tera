@@ -165,7 +165,7 @@ def shorten_url(url: str) -> Optional[str]:
         return url
     try:
         response = requests.get(
-            "https://linkcents.com//api",
+            "https://linkcents.com/api",
             params={"api": config.SHORTENER_API, "url": url}
         )
         return response.json().get("shortenedUrl", url)
@@ -351,6 +351,7 @@ async def upload_file(file_path: str, message: Message, status_message: Message)
             progress=lambda c, t: asyncio.create_task(
                 upload_progress(c, t, status_message)
             )
+        )  # Fixed closing parenthesis here
         
         await bot.copy_message(message.chat.id, config.DUMP_CHAT_ID, msg.id)
     except Exception as e:
