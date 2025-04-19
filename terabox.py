@@ -197,7 +197,7 @@ async def start_command(client: Client, message: Message):
     repo69 = InlineKeyboardButton("ʀᴇᴘᴏ 🌐", url="https://github.com/Hrishi2861/Terabox-Downloader-Bot")
     reply_markup = InlineKeyboardMarkup([[join_button, developer_button], [repo69]])
     final_msg = "🌟 ɪ ᴀᴍ ᴀ ᴛᴇʀᴀʙᴏx ᴅᴏᴡɴʟᴏᴀᴅᴇʀ ʙᴏᴛ.\n\nYou already have a valid token!"
-    video_file_id = ""
+    video_file_id = "https://beritakarya.id/wp-content/uploads/2024/06/terabox.jpg"
     if len(message.command) > 1 and len(message.command[1]) == 36:
         token = message.command[1]
         user_id = message.from_user.id
