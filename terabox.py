@@ -23,53 +23,38 @@ import sys
 
 load_dotenv('config.env', override=True)
 logging.basicConfig(
-    level=logging.INFO,  
+    level=logging.INFO,
     format="[%(asctime)s - %(name)s - %(levelname)s] %(message)s - %(filename)s:%(lineno)d"
 )
-
 logger = logging.getLogger(__name__)
-
 logging.getLogger("pyrogram.session").setLevel(logging.ERROR)
 logging.getLogger("pyrogram.connection").setLevel(logging.ERROR)
 logging.getLogger("pyrogram.dispatcher").setLevel(logging.ERROR)
 
-aria2 = Aria2API(
-    Aria2Client(
-        host="http://localhost",
-        port=6800,
-        secret=""
-    )
-)
-options = {
+aria2 = Aria2API(Aria2Client(host="http://localhost", port=6800, secret=""))
+aria2.set_global_options({
     "max-tries": "50",
     "retry-wait": "3",
     "continue": "true",
     "allow-overwrite": "true",
     "min-split-size": "4M",
     "split": "10"
-}
+})
 
-aria2.set_global_options(options)
-
-
-
-# Constants
 VALID_DOMAINS = [
     'terabox.com', 'nephobox.com', '4funbox.com', 'mirrobox.com', 
     'momerybox.com', 'teraboxapp.com', '1024tera.com', 
     'terabox.app', 'gibibox.com', 'goaibox.com', 'terasharelink.com', 
     'teraboxlink.com', 'terafileshare.com'
 ]
-DEFAULT_SPLIT_SIZE = 2 * 1024**3  # 2GB
-VIP_SPLIT_SIZE = 4 * 1024**3  # 4GB
+DEFAULT_SPLIT_SIZE = 2 * 1024**3
+VIP_SPLIT_SIZE = 4 * 1024**3
 UPDATE_INTERVAL = 15
 TOKEN_EXPIRY_HOURS = 12
 
-# Configuration
 class Config:
     def __init__(self):
         load_dotenv('config.env', override=True)
-        
         self.API_ID = self._get_env('TELEGRAM_API', required=True)
         self.API_HASH = self._get_env('TELEGRAM_HASH', required=True)
         self.BOT_TOKEN = self._get_env('BOT_TOKEN', required=True)
@@ -78,13 +63,8 @@ class Config:
         self.DATABASE_URL = self._get_env('DATABASE_URL', required=True)
         self.SHORTENER_API = self._get_env('SHORTENER_API')
         self.USER_SESSION_STRING = self._get_env('USER_SESSION_STRING')
-        
-        # Aria2 Configuration
-        self.aria2 = Aria2API(
-            Aria2Client(host="http://localhost", port=6800, secret=""))
+        self.aria2 = Aria2API(Aria2Client(host="http://localhost", port=6800, secret=""))
         self._configure_aria2()
-        
-        # MongoDB Indexes
         self._create_indexes()
 
     def _get_env(self, key: str, required: bool = False) -> Optional[str]:
@@ -111,36 +91,15 @@ class Config:
         db["user_requests"].create_index([("user_id", ASCENDING)])
         db["user_requests"].create_index([("token_expiry", ASCENDING)])
 
-# Initialize config
 config = Config()
 
-# Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s - %(name)s - %(levelname)s] %(message)s - %(filename)s:%(lineno)d",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('terabox.log')
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Pyrogram Clients
 bot = Client("jetbot", api_id=config.API_ID, api_hash=config.API_HASH, bot_token=config.BOT_TOKEN)
-user_client = None
-if config.USER_SESSION_STRING:
-    user_client = Client("jetu", api_id=config.API_ID, api_hash=config.API_HASH, 
-                       session_string=config.USER_SESSION_STRING)
-
-# Database
+user_client = Client("jetu", api_id=config.API_ID, api_hash=config.API_HASH, session_string=config.USER_SESSION_STRING) if config.USER_SESSION_STRING else None
 client = MongoClient(config.DATABASE_URL)
 db = client["terabox"]
 collection = db["user_requests"]
-
-# Flask
 flask_app = Flask(__name__)
 shutdown_event = Event()
-
 # Utilities
 def format_size(size: int) -> str:
     for unit in ['B', 'KB', 'MB', 'GB']:
@@ -460,13 +419,10 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 if __name__ == "__main__":
-    # Use Heroku-provided PORT, fallback to 5000 locally
     port = int(os.environ.get("PORT", 5000))
-
-    # Start Flask server on the correct port
-    Thread(target=lambda: flask_app.run(host='0.0.0.0', port=port)).start()
-
-    # Start Telegram Clients
+    flask_thread = Thread(target=lambda: flask_app.run(host='0.0.0.0', port=port))
+    flask_thread.daemon = True
+    flask_thread.start()
     if user_client:
         user_client.start()
     bot.run()
